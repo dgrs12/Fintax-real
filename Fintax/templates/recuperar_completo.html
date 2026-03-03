@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Contraseña Cambiada | Fintax</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; background: linear-gradient(180deg, #050505 0%, #0a0a1a 70%, #1a1a3a 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; color: #ecf0f1; }
+        .login-card { background: rgba(10, 10, 10, 0.4); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 40px; width: 100%; max-width: 400px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6); text-align: center; }
+        .login-title { font-size: 26px; margin-bottom: 10px; font-weight: 700; color: #2ecc71; }
+        .instructions { font-size: 15px; color: #bdc3c7; margin-bottom: 25px; line-height: 1.5; }
+        .btn-submit { display: block; width: 100%; padding: 12px; background: #2ecc71; text-decoration: none; border-radius: 8px; color: #121212; font-size: 16px; font-weight: bold; transition: 0.3s; box-sizing: border-box; }
+        .btn-submit:hover { background: #27ae60; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h1 class="login-title">¡Contraseña Actualizada! 🎉</h1>
+        <p class="instructions">Tu contraseña ha sido cambiada exitosamente. Ya puedes acceder a tu billetera.</p>
+        <a href="{% url 'login' %}" class="btn-submit">Entrar a Fintax 🐷</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fintax | Suscripciones</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --primary: #2ecc71; --danger: #e74c3c; --dark: #2c3e50; 
+            --bg: #f8f9fa; --accent: #3498db;
+            --card-bg: #ffffff; 
+            --text-main: #2c3e50; 
+            --border-color: #f0f0f0; 
+            --input-bg: #f8f9fa;
+        }
+
+        [data-theme="dark"] {
+            --bg: #121212; 
+            --card-bg: #1e1e1e; 
+            --text-main: #ecf0f1; 
+            --dark: #ecf0f1; 
+            --border-color: #333333; 
+            --input-bg: #2c3e50;
+        }
+
+        body { background-color: var(--bg); font-family: 'Inter', sans-serif; margin: 0; padding: 20px; color: var(--text-main); transition: background-color 0.3s ease, color 0.3s ease; }
+        .main-container { max-width: 450px; margin: 0 auto; }
+        
+        .glass-card { background: var(--card-bg); padding: 25px; border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 25px; transition: background-color 0.3s ease; }
+        
+        input, select { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid var(--border-color); border-radius: 12px; font-family: inherit; box-sizing: border-box; background-color: var(--input-bg); color: var(--text-main); transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;}
+        .form-label { font-size: 13px; font-weight: 600; color: #7f8c8d; margin-bottom: 5px; display: block; }
+        .btn-save { background: var(--accent); color: white; border: none; padding: 14px; border-radius: 12px; width: 100%; font-weight: 600; cursor: pointer; transition: 0.3s; }
+        .btn-save:hover { opacity: 0.9; }
+        
+        .btn-back { display: inline-block; margin-bottom: 20px; color: var(--text-main); text-decoration: none; font-weight: 600; font-size: 14px; }
+        
+        .history-item { background: var(--card-bg); padding: 15px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border: 1px solid var(--border-color); }
+    </style>
+</head>
+<body>
+
+<div class="main-container">
+    <a href="{% url 'inicio' %}" class="btn-back">⬅️ Volver al Dashboard</a>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="margin: 0;">Mis Suscripciones 🔁</h2>
+    </div>
+
+    <div class="glass-card">
+        <h4 style="margin-top:0; margin-bottom: 15px;">Agregar Nuevo Gasto Fijo</h4>
+        <form method="POST" action="{% url 'suscripciones' %}">
+            {% csrf_token %}
+            
+            <label class="form-label">Nombre del servicio:</label>
+            <input type="text" name="name" placeholder="Ej. Netflix, Gimnasio, Spotify" required>
+
+            <label class="form-label">Monto Mensual:</label>
+            <input type="number" name="amount" step="0.01" placeholder="Ej. 199.00" required>
+
+            <label class="form-label">Categoría a la que pertenece:</label>
+            <select name="category" required>
+                <option value="" disabled selected>Selecciona una categoría de gasto</option>
+                {% for cat in categorias %}
+                    <option value="{{ cat.id }}">{{ cat.name }}</option>
+                {% empty %}
+                    <option value="" disabled>Primero crea una categoría de gasto</option>
+                {% endfor %}
+            </select>
+
+            <label class="form-label">Día de cobro (del 1 al 31):</label>
+            <input type="number" name="billing_day" min="1" max="31" placeholder="Ej. 15" required>
+
+            <button type="submit" class="btn-save">Guardar Suscripción</button>
+        </form>
+    </div>
+
+    <h4 style="margin-bottom: 15px;">Servicios Activos</h4>
+    
+    <div style="margin-bottom: 50px;">
+        {% for sub in suscripciones %}
+        <div class="history-item">
+            <div>
+                <strong style="color: var(--text-main); display: block; font-size: 15px;">{{ sub.name }}</strong>
+                <span style="font-size: 11px; color: #95a5a6; display: block; margin-top: 3px;">💳 Categoría: {{ sub.category.name }}</span>
+                <span style="font-size: 11px; color: #95a5a6; display: block;">📅 Se cobra los días {{ sub.billing_day }} de cada mes</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <b style="color: var(--danger); font-size: 16px;">${{ sub.amount|floatformat:2 }}</b>
+                
+                <a href="{% url 'eliminar_suscripcion' sub.id %}" style="text-decoration:none; font-size: 20px; background: #ffeaa7; padding: 5px; border-radius: 8px;" title="Eliminar" onclick="return confirm('¿Seguro que quieres eliminar esta suscripción? Esta acción no se puede deshacer.');">🗑️</a>
+            </div>
+        </div>
+        {% empty %}
+        <div style="text-align: center; color: #95a5a6; font-size: 13px; margin-top: 20px;">
+            Aún no has registrado ninguna suscripción o gasto fijo.
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    // Respetar el Modo Oscuro si el usuario lo tiene activado en el Inicio
+    if (localStorage.getItem('theme') === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    }
+</script>
+
+</body>
+</html>

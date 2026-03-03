@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Cuenta | Fintax</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0; padding: 0; font-family: 'Inter', sans-serif;
+            background: linear-gradient(180deg, #050505 0%, #0a0a1a 70%, #1a1a3a 100%);
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            color: #ecf0f1; padding: 20px; box-sizing: border-box;
+        }
+        .login-card {
+            background: rgba(10, 10, 10, 0.4); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 40px;
+            width: 100%; max-width: 400px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6); text-align: center;
+        }
+        .login-title { font-size: 26px; margin-bottom: 25px; font-weight: 700; }
+        
+        /* Estilo para los mensajes de error de Django */
+        .error-alert {
+            background: rgba(231, 76, 60, 0.2); border: 1px solid rgba(231, 76, 60, 0.5);
+            color: #ff6b6b; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 14px;
+            text-align: left;
+        }
+        
+        .input-group { margin-bottom: 20px; text-align: left; position: relative; }
+        .input-group label { display: block; font-size: 13px; margin-bottom: 5px; color: #bdc3c7; }
+        .input-group input {
+            width: 100%; padding: 12px; border-radius: 8px; background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.15); color: white; font-size: 15px;
+            box-sizing: border-box; outline: none; transition: 0.3s;
+        }
+        .input-group input:focus { border-color: #2ecc71; box-shadow: 0 0 10px rgba(46, 204, 113, 0.3); }
+        
+        .toggle-password { 
+            position: absolute; right: 15px; top: 38px; cursor: pointer; 
+            color: #bdc3c7; font-size: 18px; user-select: none;
+        }
+        
+        .btn-submit {
+            width: 100%; padding: 12px; background: #2ecc71; border: none; border-radius: 8px;
+            color: #121212; font-size: 16px; font-weight: bold; cursor: pointer; 
+            transition: 0.3s; margin-top: 10px;
+        }
+        .btn-submit:hover { 
+            background: #27ae60; transform: translateY(-2px); 
+            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4); 
+        }
+        
+        .extra-links { margin-top: 25px; font-size: 13px; display: flex; flex-direction: column; gap: 10px; }
+        .extra-links a { color: #3498db; text-decoration: none; }
+        .extra-links a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h1 class="login-title">Únete a Fintax 🐷</h1>
+        
+        <form method="POST">
+            {% csrf_token %}
+            
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="error-alert">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <div class="input-group">
+                <label for="username">Nombre de Usuario</label>
+                <input type="text" id="username" name="username" placeholder="Ej. juan_233" required value="{{ request.POST.username|default:'' }}">
+            </div>
+
+            <div class="input-group">
+                <label for="email">Correo Electrónico</label>
+                <input type="email" id="email" name="email" placeholder="tu@correo.com" required value="{{ request.POST.email|default:'' }}">
+            </div>
+
+            <div class="input-group">
+                <label for="password">Contraseña</label>
+                <input type="password" id="password" name="password" placeholder="Mínimo 8 caracteres" required>
+                <span class="toggle-password" onclick="togglePassword()">👁️</span>
+            </div>
+
+            <button type="submit" class="btn-submit">Crear mi Billetera</button>
+        </form>
+
+        <div class="extra-links">
+            <a href="{% url 'login' %}">¿Ya tienes cuenta? Inicia sesión aquí</a>
+        </div>
+    </div>
+
+    <script>
+        function togglePassword() {
+            const passwordInput = document.getElementById("password");
+            const eyeIcon = document.querySelector(".toggle-password");
+            if (passwordInput.type === "password") {
+                passwordInput.type = "text";
+                eyeIcon.textContent = "🙈";
+            } else {
+                passwordInput.type = "password";
+                eyeIcon.textContent = "👁️";
+            }
+        }
+    </script>
+</body>
+</html>

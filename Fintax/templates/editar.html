@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Movimiento | Fintax</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #2ecc71; --danger: #e74c3c; --dark: #2c3e50; --bg: #f8f9fa; --accent: #3498db; }
+        body { background-color: var(--bg); font-family: 'Inter', sans-serif; margin: 0; padding: 20px; color: var(--dark); }
+        .main-container { max-width: 450px; margin: 0 auto; }
+        .glass-card { background: white; padding: 25px; border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        input, select { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #eee; border-radius: 12px; font-family: inherit; box-sizing: border-box; background-color: #f8f9fa;}
+        .form-label { font-size: 13px; font-weight: 600; color: #7f8c8d; margin-bottom: 5px; display: block; }
+        .btn-save { background: var(--accent); color: white; border: none; padding: 14px; border-radius: 12px; width: 100%; font-weight: 600; cursor: pointer; transition: 0.3s; }
+        .btn-save:hover { opacity: 0.9; }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div style="margin-bottom: 20px;">
+            <a href="{% url 'inicio' %}" style="text-decoration: none; font-weight: bold; color: var(--dark);">← Cancelar y volver</a>
+        </div>
+
+        <div class="glass-card">
+            <h3 style="margin-top:0; color: var(--dark);">✏️ Editar Movimiento</h3>
+            
+            <form method="POST">
+                {% csrf_token %}
+                
+                <label class="form-label">Monto:</label>
+                <input type="number" name="amount" step="0.01" value="{{ t.amount|stringformat:'.2f' }}" required>
+
+                <label class="form-label">Categoría:</label>
+                <select name="category" required>
+                    {% for cat in categorias %}
+                        <option value="{{ cat.id }}" {% if cat.id == t.category.id %}selected{% endif %}>
+                            {{ cat.name }} {% if cat.is_expense %} (Gasto) {% else %} (Ingreso) {% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <label class="form-label">Fecha:</label>
+                <input type="date" name="date" value="{{ t.date|date:'Y-m-d' }}" required>
+
+                <label class="form-label">Nota (Opcional):</label>
+                <input type="text" name="note" value="{{ t.note|default:'' }}" placeholder="Ej. Tacos en la esquina">
+
+                <button type="submit" class="btn-save">Actualizar Registro</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

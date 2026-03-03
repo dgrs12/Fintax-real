@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fintax | Educación Financiera</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* 🌙 MODO NOCHE FORZADO (Estilo Fintax Original) */
+        body { 
+            background-color: #121212; 
+            font-family: 'Inter', sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            color: #ecf0f1; 
+        }
+        .main-container { max-width: 1000px; margin: 0 auto; }
+        
+        .btn-back { display: inline-flex; align-items: center; margin-bottom: 20px; color: #3498db; text-decoration: none; font-weight: 600; font-size: 14px; gap: 8px; }
+        .btn-back:hover { text-decoration: underline; }
+
+        .section-title { border-bottom: 2px solid #333333; padding-bottom: 10px; margin-top: 40px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        
+        .news-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; margin-bottom: 50px; }
+        
+        /* Tarjetas Oscuras */
+        .news-card { background: #1e1e1e; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; flex-direction: column; border: 1px solid #333333; transition: transform 0.2s; }
+        .news-card:hover { transform: translateY(-5px); }
+        
+        .news-img { width: 100%; height: 180px; object-fit: cover; background: #2c3e50; }
+        .news-content { padding: 20px; display: flex; flex-direction: column; flex-grow: 1; }
+        .news-title { font-size: 17px; font-weight: 700; margin: 0 0 12px 0; line-height: 1.4; color: #ffffff; }
+        .news-desc { font-size: 14px; color: #bdc3c7; margin-bottom: 15px; line-height: 1.5; flex-grow: 1; }
+        
+        .news-btn { background: #3498db; color: white; text-align: center; padding: 12px; border-radius: 10px; text-decoration: none; font-size: 14px; font-weight: 600; transition: 0.2s; }
+        .news-btn:hover { opacity: 0.9; }
+        
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 10px; width: fit-content; }
+        .badge-fintax { background: rgba(46, 204, 113, 0.2); color: #2ecc71; }
+        .badge-api { background: rgba(52, 152, 219, 0.2); color: #3498db; }
+
+        /* Estilos de las cajitas de la calculadora */
+        .calc-input {
+            width: 100%; padding: 10px; margin-top: 5px; border-radius: 8px; 
+            border: 1px solid #444; background: #2c3e50; color: #ffffff; 
+            box-sizing: border-box; font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-container">
+    <a href="{% url 'inicio' %}" class="btn-back">⬅️ Volver al Dashboard</a>
+
+    <header>
+        <h2 style="font-size: 28px; margin-bottom: 5px;">Centro de Aprendizaje 🧠</h2>
+        <p style="color: #bdc3c7; margin: 0; margin-bottom: 30px;">Domina tus finanzas con contenido curado por Fintax.</p>
+    </header>
+
+    <div class="news-card" style="padding: 25px; margin-bottom: 50px; border: 2px solid #2ecc71;">
+        <h3 style="margin-top: 0; display: flex; align-items: center; gap: 8px; color: white;">
+            🚀 Simulador de Inversión
+        </h3>
+        <p class="news-desc">Descubre cómo el interés compuesto multiplica tu dinero con el tiempo.</p>
+        
+        <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 20px;">
+            <div style="flex: 1; min-width: 150px;">
+                <label style="font-size: 13px; font-weight: bold; color: #bdc3c7;">Inversión Inicial ($)</label>
+                <input type="number" id="capital" value="5000" class="calc-input">
+            </div>
+            <div style="flex: 1; min-width: 150px;">
+                <label style="font-size: 13px; font-weight: bold; color: #bdc3c7;">Aporte Mensual ($)</label>
+                <input type="number" id="aporte" value="1000" class="calc-input">
+            </div>
+            <div style="flex: 1; min-width: 150px;">
+                <label style="font-size: 13px; font-weight: bold; color: #bdc3c7;">Tasa Anual (%)</label>
+                <input type="number" id="tasa" value="14" class="calc-input">
+            </div>
+            <div style="flex: 1; min-width: 150px;">
+                <label style="font-size: 13px; font-weight: bold; color: #bdc3c7;">Años a invertir</label>
+                <input type="number" id="anios" value="10" class="calc-input">
+            </div>
+        </div>
+
+        <div style="margin-top: 25px; padding: 20px; background: #121212; border-radius: 12px; text-align: center; border: 1px solid #333;">
+            <span style="font-size: 14px; color: #bdc3c7;">Al final tendrás un aproximado de:</span>
+            <h2 id="resultado-total" style="color: #2ecc71; font-size: 32px; margin: 5px 0;">$0.00</h2>
+        </div>
+
+        <div style="margin-top: 30px; position: relative; height: 300px; width: 100%;">
+            <canvas id="grafica-inversion"></canvas>
+        </div>
+    </div>
+
+    <h3 class="section-title">🌟 Recomendaciones Fintax</h3>
+    <div class="news-grid">
+        {% for noticia in custom_news %}
+        <article class="news-card">
+            {% if noticia.image_url %}
+                <img src="{{ noticia.image_url }}" alt="{{ noticia.title }}" class="news-img">
+            {% else %}
+                <div class="news-img" style="display:flex; align-items:center; justify-content:center; color:white;">Fintax Exclusive</div>
+            {% endif %}
+            <div class="news-content">
+                <span class="badge badge-fintax">Contenido VIP</span>
+                <h4 class="news-title">{{ noticia.title }}</h4>
+                <p class="news-desc">{{ noticia.description|truncatechars:100 }}</p>
+                {% if noticia.link %}
+                    <a href="{{ noticia.link }}" target="_blank" class="news-btn" style="background: #2ecc71;">Ver Recurso</a>
+                {% endif %}
+            </div>
+        </article>
+        {% empty %}
+            <div style="color: #7f8c8d; font-style: italic;">Próximamente contenido exclusivo.</div>
+        {% endfor %}
+    </div>
+
+    <h3 class="section-title">🌍 Actualidad Económica</h3>
+    <div class="news-grid">
+        {% for noticia_api in api_news %}
+        <article class="news-card">
+            {% if noticia_api.urlToImage %}
+                <img src="{{ noticia_api.urlToImage }}" alt="News" class="news-img">
+            {% else %}
+                <div class="news-img" style="display:flex; align-items:center; justify-content:center; color:white;">Global News</div>
+            {% endif %}
+            <div class="news-content">
+                <span class="badge badge-api">Tendencia</span>
+                <h4 class="news-title">{{ noticia_api.title }}</h4>
+                <p class="news-desc">{{ noticia_api.description|truncatechars:90 }}</p>
+                <a href="{{ noticia_api.url }}" target="_blank" class="news-btn">Leer Noticia</a>
+            </div>
+        </article>
+        {% empty %}
+            <div style="color: #7f8c8d; font-style: italic;">No se pudieron cargar noticias.</div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    let miGrafica = null; 
+
+    function calcularInteres() {
+        let capital = parseFloat(document.getElementById('capital').value) || 0;
+        let aporte = parseFloat(document.getElementById('aporte').value) || 0;
+        let tasa = parseFloat(document.getElementById('tasa').value) || 0;
+        let anios = parseFloat(document.getElementById('anios').value) || 0;
+
+        let tasaMensual = (tasa / 100) / 12;
+        let balance = capital;
+        let dineroAportado = capital;
+
+        let etiquetasAnos = [];
+        let datosGananciaTotal = [];
+        let datosAportePuro = [];
+
+        for (let i = 1; i <= anios; i++) {
+            etiquetasAnos.push("Año " + i);
+            for (let m = 0; m < 12; m++) {
+                balance = (balance + aporte) * (1 + tasaMensual);
+                dineroAportado += aporte;
+            }
+            datosGananciaTotal.push(balance);
+            datosAportePuro.push(dineroAportado);
+        }
+
+        // Imprimir el dinero en la pantalla
+        document.getElementById('resultado-total').innerText = 
+            "$" + balance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+        // Dibujar la gráfica
+        let ctx = document.getElementById('grafica-inversion').getContext('2d');
+        if (miGrafica) { miGrafica.destroy(); }
+
+        miGrafica = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: etiquetasAnos,
+                datasets: [
+                    {
+                        label: 'Total con Interés Compuesto',
+                        data: datosGananciaTotal,
+                        borderColor: '#2ecc71',
+                        backgroundColor: 'rgba(46, 204, 113, 0.2)',
+                        fill: true,
+                        tension: 0.4 
+                    },
+                    {
+                        label: 'Dinero de tu bolsa',
+                        data: datosAportePuro,
+                        borderColor: '#3498db',
+                        backgroundColor: 'transparent',
+                        borderDash: [5, 5], 
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: '#ecf0f1' } }
+                },
+                scales: {
+                    x: { 
+                        ticks: { color: '#bdc3c7' },
+                        grid: { color: '#333333' }
+                    },
+                    y: { 
+                        ticks: { color: '#bdc3c7' },
+                        grid: { color: '#333333' }
+                    }
+                }
+            }
+        });
+    }
+
+    document.querySelectorAll('#capital, #aporte, #tasa, #anios').forEach(cajita => {
+        cajita.addEventListener('input', calcularInteres);
+    });
+
+    // Arrancamos la calculadora al inicio
+    calcularInteres();
+</script>
+
+</body>
+</html>

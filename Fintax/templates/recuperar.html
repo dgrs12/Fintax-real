@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar Contraseña | Fintax</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Mismo fondo oscuro elegante de tu login */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(180deg, #050505 0%, #0a0a1a 70%, #1a1a3a 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ecf0f1;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* Tarjeta de Cristal (Glassmorphism) */
+        .login-card {
+            background: rgba(10, 10, 10, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            text-align: center;
+        }
+
+        .login-title { font-size: 26px; margin-bottom: 10px; font-weight: 700; }
+        .instructions { font-size: 14px; color: #bdc3c7; margin-bottom: 25px; line-height: 1.5; }
+        
+        /* 🔴 Alerta de Error (por si ponen un correo no válido) */
+        .errorlist {
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid rgba(231, 76, 60, 0.5);
+            color: #ff6b6b;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            text-align: left;
+            list-style: none;
+        }
+
+        /* Estilos para que el input de Django se vea bien */
+        form label { display: block; font-size: 13px; margin-bottom: 5px; color: #bdc3c7; text-align: left; }
+        form input[type="email"], form input[type="text"] {
+            width: 100%; padding: 12px; border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.15);
+            color: white; font-size: 15px; box-sizing: border-box; outline: none; transition: 0.3s;
+            margin-bottom: 20px;
+        }
+        form input:focus { border-color: #2ecc71; box-shadow: 0 0 10px rgba(46, 204, 113, 0.3); }
+
+        /* Botón Principal */
+        .btn-submit {
+            width: 100%; padding: 12px; background: #2ecc71; border: none; border-radius: 8px;
+            color: #121212; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 5px;
+        }
+        .btn-submit:hover { background: #27ae60; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4); }
+
+        /* Enlaces Extra */
+        .extra-links { margin-top: 25px; font-size: 13px; display: flex; flex-direction: column; gap: 10px; }
+        .extra-links a { color: #3498db; text-decoration: none; transition: 0.2s; }
+        .extra-links a:hover { color: #2980b9; text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <h1 class="login-title">¿Olvidaste tu clave? 🐷</h1>
+        <p class="instructions">Ingresa tu correo y te enviaremos un enlace mágico para recuperarla.</p>
+        
+        <form method="POST">
+            {% csrf_token %}
+            
+            {{ form.email.errors }}
+            <label for="id_email">Correo Electrónico:</label>
+            {{ form.email }}
+
+            <button type="submit" class="btn-submit">Enviar enlace</button>
+        </form>
+
+        <div class="extra-links">
+            <a href="{% url 'login' %}">Volver al inicio de sesión</a>
+        </div>
+    </div>
+
+</body>
+</html>

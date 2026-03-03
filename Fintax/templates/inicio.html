@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fintax | Mi Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { 
+            --primary: #2ecc71; --danger: #e74c3c; --dark: #2c3e50; 
+            --bg: #f8f9fa; --accent: #3498db;
+            --card-bg: #ffffff; 
+            --text-main: #2c3e50; 
+            --border-color: #f0f0f0; 
+            --input-bg: #f8f9fa;
+        }
+
+        [data-theme="dark"] {
+            --bg: #121212; 
+            --card-bg: #1e1e1e; 
+            --text-main: #ecf0f1; 
+            --dark: #ecf0f1; 
+            --border-color: #333333; 
+            --input-bg: #2c3e50;
+        }
+
+        body { background-color: var(--bg); font-family: 'Inter', sans-serif; margin: 0; padding: 20px; color: var(--text-main); transition: background-color 0.3s ease, color 0.3s ease; }
+        .main-container { max-width: 450px; margin: 0 auto; }
+        
+        .balance-card {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white; padding: 30px 20px; border-radius: 28px; text-align: center;
+            box-shadow: 0 10px 30px rgba(46, 204, 113, 0.3); margin-bottom: 25px;
+        }
+        .balance-card h2 { margin: 10px 0 0 0; font-size: 38px; font-weight: 700; }
+
+        .alert-msg {
+            padding: 15px; border-radius: 15px; margin-bottom: 20px; font-weight: 600; 
+            font-size: 14px; position: relative; display: flex; align-items: center; justify-content: space-between;
+        }
+        .alert-warning { background-color: #f39c12; color: white; }
+        .alert-success { background-color: var(--primary); color: white; }
+
+        .savings-container { background: var(--card-bg); padding: 20px; border-radius: 24px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: background-color 0.3s ease; }
+        .progress-bg { background: var(--border-color); border-radius: 10px; height: 14px; width: 100%; margin: 12px 0; overflow: hidden; }
+        .progress-fill { background: var(--accent); height: 100%; border-radius: 10px; width: {{ porcentaje_ahorro|default:0|floatformat:0 }}%; transition: 1s ease-in-out; }
+
+        .glass-card { background: var(--card-bg); padding: 25px; border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 25px; transition: background-color 0.3s ease; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .stat-box { padding: 15px; border-radius: 20px; text-align: center; background: var(--card-bg); border: 1px solid var(--border-color); transition: background-color 0.3s ease, border-color 0.3s ease; }
+
+        input, select { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid var(--border-color); border-radius: 12px; font-family: inherit; box-sizing: border-box; background-color: var(--input-bg); color: var(--text-main); transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;}
+        .form-label { font-size: 13px; font-weight: 600; color: #7f8c8d; margin-bottom: 5px; display: block; }
+        .btn-save { background: var(--dark); color: var(--bg); border: none; padding: 14px; border-radius: 12px; width: 100%; font-weight: 600; cursor: pointer; transition: 0.3s; }
+        .btn-save:hover { opacity: 0.9; }
+        
+        .history-item { background: var(--card-bg); padding: 15px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: background-color 0.3s ease; }
+        .cat-tag { padding: 4px 10px; border-radius: 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-main); }
+        details summary { font-size: 12px; color: var(--accent); cursor: pointer; font-weight: 600; outline: none; }
+    </style>
+</head>
+<body>
+
+<div class="main-container">
+
+    <div style="text-align: right; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-weight: bold; color: var(--text-main); font-size: 18px;">¡Hola, {{ user.username|default:"Jefe" }}! 👋</span>
+        
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <button id="theme-toggle" style="background: none; border: none; font-size: 22px; cursor: pointer; padding: 0;">🌙</button>
+            
+            <form action="{% url 'logout' %}" method="post" style="margin: 0;">
+                {% csrf_token %}
+                <button type="submit" style="background-color: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 12px;">🚪 Salir</button>
+            </form>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert-msg {% if message.tags == 'warning' %}alert-warning{% else %}alert-success{% endif %}">
+                <span>{{ message }}</span>
+                <span onclick="this.parentElement.style.display='none'" style="cursor:pointer; font-size: 20px;">&times;</span>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div style="margin-bottom: 20px; background: var(--card-bg); padding: 10px 15px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); transition: background-color 0.3s ease;">
+        <form method="GET" style="margin: 0; display: flex; gap: 10px;">
+            <select name="mes" onchange="this.form.submit()" style="margin: 0; padding: 10px; flex: 2; border: none; font-weight: 600; background: transparent;">
+                <option value="1" {% if mes_actual == 1 %}selected{% endif %}>Enero</option>
+                <option value="2" {% if mes_actual == 2 %}selected{% endif %}>Febrero</option>
+                <option value="3" {% if mes_actual == 3 %}selected{% endif %}>Marzo</option>
+                <option value="4" {% if mes_actual == 4 %}selected{% endif %}>Abril</option>
+                <option value="5" {% if mes_actual == 5 %}selected{% endif %}>Mayo</option>
+                <option value="6" {% if mes_actual == 6 %}selected{% endif %}>Junio</option>
+                <option value="7" {% if mes_actual == 7 %}selected{% endif %}>Julio</option>
+                <option value="8" {% if mes_actual == 8 %}selected{% endif %}>Agosto</option>
+                <option value="9" {% if mes_actual == 9 %}selected{% endif %}>Septiembre</option>
+                <option value="10" {% if mes_actual == 10 %}selected{% endif %}>Octubre</option>
+                <option value="11" {% if mes_actual == 11 %}selected{% endif %}>Noviembre</option>
+                <option value="12" {% if mes_actual == 12 %}selected{% endif %}>Diciembre</option>
+            </select>
+            <select name="anio" onchange="this.form.submit()" style="margin: 0; padding: 10px; flex: 1; border: none; font-weight: 600; background: transparent;">
+                <option value="2025" {% if anio_actual == 2025 %}selected{% endif %}>2025</option>
+                <option value="2026" {% if anio_actual == 2026 %}selected{% endif %}>2026</option>
+                <option value="2027" {% if anio_actual == 2027 %}selected{% endif %}>2027</option>
+            </select>
+        </form>
+    </div>
+
+    <div class="balance-card">
+        <p style="margin:0; font-size:11px; opacity:0.9; letter-spacing:1px;">SALDO DISPONIBLE</p>
+        <h2>${{ saldo|default:0|floatformat:2 }}</h2>
+    </div>
+
+    <div style="margin-bottom: 25px; display: flex; gap: 10px;">
+        <a href="{% url 'educacion' %}" style="flex: 1; text-align: center; background: var(--accent); color: white; padding: 12px; border-radius: 12px; text-decoration: none; font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+            📚 Educación Financiera
+        </a>
+    </div>
+
+    <div class="savings-container">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-weight: 600; font-size: 15px;">🎯 {{ meta_nombre|default:"Sin meta definida" }}</span>
+            <span style="color: var(--accent); font-weight: 700;">{{ porcentaje_ahorro|default:0|floatformat:0 }}%</span>
+        </div>
+        <div class="progress-bg"><div class="progress-fill"></div></div>
+        
+        <div style="display: flex; justify-content: space-between; font-size: 11px; color: #95a5a6; margin-bottom: 15px;">
+            <span>Meta: ${{ meta_valor|default:0|floatformat:2 }}</span>
+            <span>Restan: ${{ saldo_restante|default:0|floatformat:2 }}</span>
+        </div>
+
+        <form method="POST" style="margin-bottom: 15px; display: flex; gap: 10px;">
+            {% csrf_token %}
+            <input type="hidden" name="add_savings" value="1">
+            <input type="number" name="savings_amount" step="0.01" placeholder="Abonar ($)" style="margin: 0; padding: 10px;" required>
+            <button type="submit" class="btn-save" style="background: var(--primary); padding: 10px; width: auto; font-size: 13px; color: white;">Abonar</button>
+        </form>
+
+        <details>
+            <summary>Configurar nueva meta</summary>
+            <form method="POST" style="margin-top: 10px;">
+                {% csrf_token %}
+                <input type="hidden" name="set_goal" value="1">
+                <input type="text" name="goal_name" placeholder="¿Para qué es el ahorro?" required>
+                <input type="number" name="target_amount" step="0.01" placeholder="Monto objetivo ($)" required>
+                <button type="submit" class="btn-save" style="background: var(--accent); padding: 8px; color: white;">Actualizar</button>
+            </form>
+        </details>
+    </div>
+
+    <div class="glass-card" style="padding: 10px; display: flex; justify-content: center;">
+        <div style="width: 150px;"><canvas id="miGrafica"></canvas></div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-box" style="border-bottom: 3px solid var(--primary);">
+            <small style="color: #95a5a6;">INGRESOS</small><br>
+            <b style="color: var(--primary);">+${{ ingresos|default:0|floatformat:2 }}</b>
+        </div>
+        <div class="stat-box" style="border-bottom: 3px solid var(--danger);">
+            <small style="color: #95a5a6;">GASTOS</small><br>
+            <b style="color: var(--danger);">-${{ gastos|default:0|floatformat:2 }}</b>
+        </div>
+    </div>
+
+    {% if datos_presupuestos %}
+    <div class="glass-card">
+        <h3 style="margin-top:0; color: var(--text-main); font-size: 16px;">📊 Mis Presupuestos</h3>
+        
+        {% for p in datos_presupuestos %}
+        <div style="margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; font-weight: bold;">
+                <span>{{ p.nombre }}</span>
+                <span>${{ p.gastado|floatformat:2 }} / ${{ p.limite|floatformat:2 }}</span>
+            </div>
+            
+            <div style="width: 100%; background-color: var(--border-color); border-radius: 10px; height: 12px; overflow: hidden;">
+                <div style="height: 100%; width: {{ p.porcentaje }}%; background-color: {{ p.color }}; border-radius: 10px; transition: all 0.5s ease;"></div>
+            </div>
+            
+            {% if p.porcentaje_real >= 100 %}
+                <div style="font-size: 11px; color: #e74c3c; margin-top: 5px; font-weight: bold;">
+                    ⚠️ ¡Límite superado!
+                </div>
+            {% elif p.porcentaje_real >= 80 %}
+                <div style="font-size: 11px; color: #e67e22; margin-top: 5px; font-weight: bold;">
+                    ⚠️ Cuidado, estás cerca de tu límite mensual.
+                </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="glass-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <h3 style="margin: 0; color: var(--text-main); font-size: 16px;">🔁 Gastos Fijos</h3>
+                <a href="{% url 'suscripciones' %}" style="font-size: 12px; color: var(--accent); text-decoration: none; font-weight: 600;">+ Gestionar</a>
+            </div>
+            <span style="background-color: var(--accent); color: white; padding: 5px 10px; border-radius: 8px; font-weight: bold; font-size: 12px;">Total: ${{ total_suscripciones|default:0|floatformat:2 }}</span>
+        </div>
+
+        {% for sub in suscripciones %}
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border-color);">
+            <div>
+                <strong style="color: var(--text-main); display: block; font-size: 14px;">{{ sub.name }}</strong>
+                <small style="color: #7f8c8d; font-size: 11px;">Día de pago: {{ sub.billing_date|date:"d" }}</small>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-weight: bold; color: var(--danger); font-size: 14px;">${{ sub.amount }}</span>
+                <form method="POST" style="margin: 0;">
+                    {% csrf_token %}
+                    <input type="hidden" name="pay_subscription" value="{{ sub.id }}">
+                    <button type="submit" style="background-color: var(--primary); color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; transition: 0.3s;">
+                        ✔️ Pagar
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% empty %}
+        <p style="text-align: center; color: #95a5a6; font-size: 13px; margin: 10px 0;">No tienes suscripciones registradas aún.</p>
+        {% endfor %}
+    </div>
+
+    <div class="glass-card">
+        <h4 style="margin-top:0; margin-bottom: 15px; color: var(--text-main);">Nuevo Registro</h4>
+        <form method="POST" action="">
+            {% csrf_token %}
+            <label class="form-label">Monto:</label>
+            <input type="number" name="amount" step="0.01" placeholder="Ej. 150.00" required>
+
+            <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                <label class="form-label">Categoría:</label>
+                <a href="{% url 'categorias' %}" style="font-size: 12px; color: var(--accent); text-decoration: none; font-weight: 600;">+ Gestionar</a>
+            </div>
+            <select name="category" required>
+                <option value="" disabled selected>Selecciona una categoría</option>
+                {% for cat in categorias %}
+                    <option value="{{ cat.id }}">{{ cat.name }} {% if cat.is_expense %} (Gasto) {% else %} (Ingreso) {% endif %}</option>
+                {% endfor %}
+            </select>
+
+            <label class="form-label">Fecha:</label>
+            <input type="date" name="date" min="2025-01-01" max="{% now 'Y-m-d' %}" required>
+
+            <label class="form-label">Nota (Opcional):</label>
+            <input type="text" name="note" placeholder="Ej. Tacos en la esquina">
+            <button type="submit" class="btn-save" style="color: var(--bg);">Guardar Registro</button>
+        </form>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 0 10px;">
+        <h4 style="margin: 0; color: var(--text-main);">Historial</h4>
+        <div style="display: flex; gap: 10px;">
+            <a href="{% url 'exportar_csv' %}" style="background-color: #27ae60; color: white; padding: 6px 12px; border-radius: 8px; text-decoration: none; font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 5px;">
+                📊 Excel
+            </a>
+            <a href="{% url 'exportar_pdf' %}" style="background-color: #e74c3c; color: white; padding: 6px 12px; border-radius: 8px; text-decoration: none; font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 5px;">
+                📄 PDF
+            </a>
+        </div>
+    </div>
+    
+    <div style="margin-bottom: 15px;">
+        <input type="text" id="buscador-magico" placeholder="🔍 Buscar por categoría, nota o monto..." style="margin: 0; width: 100%;">
+    </div>
+
+    <div style="margin-bottom: 50px;">
+        {% for t in transacciones %}
+        <div class="history-item">
+            <div>
+                {% if t.is_transfer %}
+                    <span class="cat-tag" style="background: rgba(52, 152, 219, 0.2); color: #3498db;">🎯 BÓVEDA</span>
+                {% else %}
+                    <span class="cat-tag" style="background: var(--input-bg);">{{ t.category.name }}</span>
+                {% endif %}
+                
+                <div style="font-size: 11px; color: #95a5a6; margin-top: 5px;">📅 {{ t.date|date:"d M, Y" }}</div>
+                {% if t.note %}
+                    <div style="font-size: 12px; color: #7f8c8d; margin-top: 3px;">📝 <i>{{ t.note }}</i></div>
+                {% endif %}
+            </div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <b style="color: {% if t.is_transfer %}var(--accent){% elif t.is_expense %}var(--danger){% else %}var(--primary){% endif %}; font-size: 15px;">
+                    {% if t.is_transfer %}💎{% elif t.is_expense %}-{% else %}+{% endif %}${{ t.amount|default:0|floatformat:2 }}
+                </b>
+                <div style="display: flex; gap: 10px;">
+                    <a href="{% url 'editar' t.id %}" style="text-decoration:none; font-size: 18px;" title="Editar">✏️</a>
+                    <a href="{% url 'eliminar' t.id %}" style="text-decoration:none; font-size: 18px;" title="Eliminar" onclick="return confirm('¿Seguro que quieres borrar este movimiento? Esta acción no se puede deshacer.');">🗑️</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div style="text-align: center; color: #95a5a6; font-size: 13px; margin-top: 20px;">Aún no tienes movimientos en este mes.</div>
+        {% endfor %}
+    </div>
+
+</div>
+
+<script>
+    // 📊 Gráfica Doughnut
+    document.addEventListener("DOMContentLoaded", function() {
+        const ctx = document.getElementById('miGrafica').getContext('2d');
+        const labels = {{ labels_categorias|safe|default:"[]" }};
+        const data = {{ datos_categorias|safe|default:"[]" }};
+        const totalGastos = data.reduce((a, b) => a + b, 0);
+
+        if (data.length === 0 || totalGastos === 0) {
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Sin gastos este mes'],
+                    datasets: [{ data: [1], backgroundColor: ['#e0e0e0'], borderWidth: 0 }]
+                },
+                options: { responsive: true, cutout: '75%', plugins: { legend: { display: false }, tooltip: { enabled: false } } }
+            });
+        } else {
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: ['#e74c3c', '#3498db', '#f1c40f', '#9b59b6', '#e67e22', '#1abc9c'],
+                        borderWidth: 0, hoverOffset: 4
+                    }]
+                },
+                options: { responsive: true, cutout: '75%', plugins: { legend: { display: false } } }
+            });
+        }
+    });
+
+    // 🌙 Lógica del Modo Oscuro
+    const toggleBtn = document.getElementById('theme-toggle');
+    const htmlElement = document.documentElement;
+
+    if (localStorage.getItem('theme') === 'dark') {
+        htmlElement.setAttribute('data-theme', 'dark');
+        toggleBtn.textContent = '☀️';
+    }
+
+    toggleBtn.addEventListener('click', () => {
+        if (htmlElement.getAttribute('data-theme') === 'dark') {
+            htmlElement.removeAttribute('data-theme');
+            localStorage.setItem('theme', 'light');
+            toggleBtn.textContent = '🌙';
+        } else {
+            htmlElement.setAttribute('data-theme', 'dark');
+            localStorage.setItem('theme', 'dark');
+            toggleBtn.textContent = '☀️';
+        }
+    });
+
+    // 🔍 Lógica del Buscador Mágico
+    const buscador = document.getElementById('buscador-magico');
+    const itemsHistorial = document.querySelectorAll('.history-item');
+
+    if (buscador) {
+        buscador.addEventListener('input', function() {
+            const textoBusqueda = this.value.toLowerCase();
+
+            itemsHistorial.forEach(item => {
+                const textoItem = item.innerText.toLowerCase();
+                if (textoItem.includes(textoBusqueda)) {
+                    item.style.display = 'flex'; 
+                } else {
+                    item.style.display = 'none'; 
+                }
+            });
+        });
+    }
+</script>
+</body>
+</html>
